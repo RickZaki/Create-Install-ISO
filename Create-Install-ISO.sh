@@ -1,39 +1,27 @@
 #!/bin/bash
 
 # Mount the installer image
-hdiutil attach /Applications/Install\ OS\ X\ El\ Capitan.app/Contents/SharedSupport/InstallESD.dmg -noverify -nobrowse -mountpoint /Volumes/install_app
+hdiutil attach /Applications/Install\ macOS\ Sierra.app/Contents/SharedSupport/InstallESD.dmg -noverify -nobrowse -mountpoint /Volumes/install_app
 
-# Convert the boot image to a sparse bundle
-hdiutil convert /Volumes/install_app/BaseSystem.dmg -format UDSP -o /tmp/ElCapitan
+# Create Destination & attach
+hdiutil create -o /tmp/Sierra.cdr -size 7316m -layout SPUD -fs HFS+J
+hdiutil attach /tmp/Sierra.cdr.dmg -noverify -nobrowse -mountpoint /Volumes/install_build
 
-# Increase the sparse bundle capacity to accommodate the packages
-hdiutil resize -size 8g /tmp/ElCapitan.sparseimage
-
-# Mount the sparse bundle for package addition
-hdiutil attach /tmp/ElCapitan.sparseimage -noverify -nobrowse -mountpoint /Volumes/install_build
-
-# Remove Package link and replace with actual files
-rm /Volumes/install_build/System/Installation/Packages
-cp -rp /Volumes/install_app/Packages /Volumes/install_build/System/Installation/
-
-# Copy El Capitan installer dependencies
-cp -rp /Volumes/install_app/BaseSystem.chunklist /Volumes/install_build/BaseSystem.chunklist
-cp -rp /Volumes/install_app/BaseSystem.dmg /Volumes/install_build/BaseSystem.dmg
+# Copy Sierra installer dependencies
+asr restore -source /Volumes/install_app/BaseSystem.dmg -target /Volumes/install_build -noprompt -noverify -erase
+rm /Volumes/OS\ X\ Base\ System/System/Installation/Packages
+cp -rp /Volumes/install_app/Packages /Volumes/OS\ X\ Base\ System/System/Installation/
+cp -rp /Volumes/install_app/BaseSystem.chunklist /Volumes/OS\ X\ Base\ System/BaseSystem.chunklist
+cp -rp /Volumes/install_app/BaseSystem.dmg /Volumes/OS\ X\ Base\ System/BaseSystem.dmg
 
 # Unmount the installer image
 hdiutil detach /Volumes/install_app
 
-# Unmount the sparse bundle
-hdiutil detach /Volumes/install_build
-
-# Resize the partition in the sparse bundle to remove any free space
-hdiutil resize -size `hdiutil resize -limits /tmp/ElCapitan.sparseimage | tail -n 1 | awk '{ print $1 }'`b /tmp/ElCapitan.sparseimage
-
-# Convert the sparse bundle to ISO/CD master
-hdiutil convert /tmp/ElCapitan.sparseimage -format UDTO -o /tmp/ElCapitan
+# Unmount the Base Image
+hdiutil detach /Volumes/OS\ X\ Base\ System/
 
 # Remove the sparse bundle
-rm /tmp/ElCapitan.sparseimage
+rm /tmp/Sierra.cdr.dmg
 
 # Rename the ISO and move it to the desktop
-mv /tmp/ElCapitan.cdr ~/Desktop/ElCapitan.iso
+mv /tmp/Sierra.iso.cdr ~/Desktop/Sierra.iso
