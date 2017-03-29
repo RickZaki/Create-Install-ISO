@@ -20,8 +20,5 @@ hdiutil detach /Volumes/install_app
 # Unmount the Base Image
 hdiutil detach /Volumes/OS\ X\ Base\ System/
 
-# Remove the sparse bundle
-rm /tmp/Sierra.cdr.dmg
-
 # Rename the ISO and move it to the desktop
-mv /tmp/Sierra.iso.cdr ~/Desktop/Sierra.iso
+mv /tmp/Sierra.cdr.dmg ~/Desktop/Sierra.iso
