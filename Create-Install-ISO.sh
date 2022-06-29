@@ -1,24 +1,21 @@
 #!/bin/bash
 
-# Mount the installer image
-hdiutil attach /Applications/Install\ macOS\ Sierra.app/Contents/SharedSupport/InstallESD.dmg -noverify -nobrowse -mountpoint /Volumes/install_app
-
 # Create Destination & attach
-hdiutil create -o /tmp/Sierra.cdr -size 7316m -layout SPUD -fs HFS+J
-hdiutil attach /tmp/Sierra.cdr.dmg -noverify -nobrowse -mountpoint /Volumes/install_build
+echo "Creating destination disk image"
+hdiutil create -o /tmp/Monterey -size 16384m -volname Monterey -layout SPUD -fs HFS+J
+hdiutil attach /tmp/Monterey.dmg -noverify -nobrowse -mountpoint /Volumes/install_build
 
-# Copy Sierra installer dependencies
-asr restore -source /Volumes/install_app/BaseSystem.dmg -target /Volumes/install_build -noprompt -noverify -erase
-rm /Volumes/OS\ X\ Base\ System/System/Installation/Packages
-cp -rp /Volumes/install_app/Packages /Volumes/OS\ X\ Base\ System/System/Installation/
-cp -rp /Volumes/install_app/BaseSystem.chunklist /Volumes/OS\ X\ Base\ System/BaseSystem.chunklist
-cp -rp /Volumes/install_app/BaseSystem.dmg /Volumes/OS\ X\ Base\ System/BaseSystem.dmg
+# Create installer
+echo "Apple's createinstallmedia tool must be run as root."
+sudo /Applications/Install\ macOS\ Monterey.app/Contents/Resources/createinstallmedia --volume /Volumes/install_build --nointeraction
 
-# Unmount the installer image
-hdiutil detach /Volumes/install_app
+# Unmount the image
+hdiutil eject -force /Volumes/Install\ macOS\ Monterey
 
-# Unmount the Base Image
-hdiutil detach /Volumes/OS\ X\ Base\ System/
+# Convert the image and move it to the desktop
+echo "Converting disk image format"
+hdiutil convert /tmp/Monterey.dmg -format UDTO -o ~/Desktop/Monterey
+rm -fv /tmp/Monterey.dmg
 
-# Rename the ISO and move it to the desktop
-mv /tmp/Sierra.cdr.dmg ~/Desktop/Sierra.iso
+# Rename the ISO
+mv -v ~/Desktop/Monterey.cdr ~/Desktop/Monterey.iso
